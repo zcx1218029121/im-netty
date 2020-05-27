@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import server.handler.AuthHandler;
 import server.handler.LoginRequestHandler;
 import server.handler.MessageRequestHandler;
 
@@ -30,7 +31,9 @@ public class NettyServer {
                         ch.pipeline().addLast(new PacketEncoder())
                                 .addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 7, 4))
                                 .addLast(new PacketDecoder())
+
                                 .addLast(new LoginRequestHandler())
+                                .addLast(new AuthHandler())
                                 .addLast(new MessageRequestHandler());
                     }
                 });

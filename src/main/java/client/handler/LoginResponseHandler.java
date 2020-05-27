@@ -16,7 +16,8 @@ public class LoginResponseHandler extends SimpleChannelInboundHandler<LoginRespo
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
         loginRequestPacket.setUserId(UUID.randomUUID().toString());
         loginRequestPacket.setUsername("admin");
-        loginRequestPacket.setPassword("123");
+        loginRequestPacket.setPassword("1234");
+
 
         // 写数据
         ctx.channel().writeAndFlush(loginRequestPacket);
@@ -32,5 +33,9 @@ public class LoginResponseHandler extends SimpleChannelInboundHandler<LoginRespo
         } else {
             System.out.println(new Date() + ": 客户端登录失败，原因：" + msg.getReason());
         }
+    }
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        System.out.println("客户端连接被关闭!");
     }
 }

@@ -11,6 +11,7 @@ import protocol.response.MessageResponsePacket;
 public class MessageRequestPacket extends Packet {
     private String message;
 
+    private String toUserId;
 
     public MessageRequestPacket(String message) {
         this.message = message;
