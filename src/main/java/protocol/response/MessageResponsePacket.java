@@ -8,8 +8,12 @@ import protocol.command.Command;
 @Data
 @NoArgsConstructor
 public class MessageResponsePacket extends Packet {
+    private String fromUserId;
+
+    private String fromUserName;
 
     private String message;
+
 
     public MessageResponsePacket(String message) {
         this.message = message;

@@ -6,6 +6,9 @@ import protocol.Packet;
 import protocol.command.Command;
 import protocol.response.MessageResponsePacket;
 
+/**
+ * @author loafer
+ */
 @Data
 @NoArgsConstructor
 public class MessageRequestPacket extends Packet {
@@ -15,6 +18,11 @@ public class MessageRequestPacket extends Packet {
 
     public MessageRequestPacket(String message) {
         this.message = message;
+    }
+
+    public MessageRequestPacket(String message, String toUserId) {
+        this.message = message;
+        this.toUserId = toUserId;
     }
 
     @Override

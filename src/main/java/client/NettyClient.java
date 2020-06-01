@@ -1,10 +1,15 @@
 package client;
 
 import client.FirstClientHandler;
+import client.handler.CreateGroupResponseHandler;
+import client.handler.GroupMessageResponseHandler;
 import client.handler.LoginResponseHandler;
 import client.handler.MessageResponseHandler;
+import codec.PacketCodecHandler;
 import codec.PacketDecoder;
 import codec.PacketEncoder;
+import command.ConsoleCommandManager;
+import command.impl.LoginConsoleCommand;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -17,7 +22,10 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import protocol.PacketCodeC;
 import protocol.request.LoginRequestPacket;
 import protocol.request.MessageRequestPacket;
+import server.handler.CreateGroupRequestHandler;
+import server.handler.GroupMessageRequestHandler;
 import util.LoginUtil;
+import util.SessionUtil;
 
 import java.util.Date;
 import java.util.Scanner;
@@ -44,15 +52,17 @@ public class NettyClient {
                     @Override
                     protected void initChannel(Channel ch) {
                         ch.pipeline()
-                                .addLast(new PacketDecoder())
+                                .addLast(PacketCodecHandler.INSTANCE)
                                 .addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 7, 4))
                                 .addLast(new LoginResponseHandler())
                                 .addLast(new MessageResponseHandler())
-                                .addLast(new PacketEncoder());
+                                .addLast(new CreateGroupResponseHandler())
+                                .addLast(new GroupMessageResponseHandler());
+
                     }
                 });
 
-        Channel channel = connect(bootstrap, "127.0.0.1", 8000, MAX_RETRY);
+        Channel channel = connect(bootstrap, "120.79.55.82", 8000, MAX_RETRY);
 
 
     }
@@ -86,17 +96,26 @@ public class NettyClient {
     }
 
     private static void startConsoleThread(Channel channel) {
+        ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager();
+        LoginConsoleCommand loginConsoleCommand = new LoginConsoleCommand();
+        Scanner scanner = new Scanner(System.in);
+
         new Thread(() -> {
             while (!Thread.interrupted()) {
-
-                    System.out.println("输入消息发送至服务端: ");
-                    Scanner sc = new Scanner(System.in);
-                    String line = sc.nextLine();
-
-                    channel.writeAndFlush(new MessageRequestPacket(line));
-
+                if (!SessionUtil.hasLogin(channel)) {
+                    loginConsoleCommand.exec(scanner, channel);
+                } else {
+                    consoleCommandManager.exec(scanner, channel);
+                }
             }
         }).start();
     }
 
+    private static void waitForLoginResponse() {
+        // 堵塞当前线程
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+    }
 }

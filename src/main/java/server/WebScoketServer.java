@@ -1,7 +1,5 @@
 package server;
 
-import client.handler.CreateGroupResponseHandler;
-import codec.PacketCodecHandler;
 import codec.PacketDecoder;
 import codec.PacketEncoder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -9,14 +7,20 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import server.handler.*;
+import server.handler.GroupMessageRequestHandler;
 
-public class NettyServer {
+public class WebScoketServer {
+    private static final String WEBSOCKET_PATH = "/websocket";
 
     public static void main(String[] args) {
+
+
         ServerBootstrap serverBootstrap = new ServerBootstrap();
 
         NioEventLoopGroup boss = new NioEventLoopGroup();
@@ -28,18 +32,16 @@ public class NettyServer {
                     @Override
                     protected void initChannel(NioSocketChannel ch) {
 
-                        ch.pipeline().addLast(new PacketEncoder())
-                                .addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 7, 4))
-                                .addLast(PacketCodecHandler.INSTANCE)
-                                .addLast(new LogoutRequestHandler())
-                                .addLast(LoginRequestHandler.INSTANCE)
-                                .addLast(new AuthHandler())
-                                .addLast(new CreateGroupRequestHandler())
-                                .addLast(new MessageRequestHandler())
-                                .addLast(new GroupMessageRequestHandler());
+                        ch.pipeline().addLast(new HttpServerCodec())
+                                .addLast(new ChunkedWriteHandler())
+                                .addLast(new GroupMessageRequestHandler())
+                                .addLast(new HttpObjectAggregator(65536))
+                                .addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true))
+                                .addLast(new FirstServerHandler())
+                        ;
                     }
                 });
-        bind(serverBootstrap, 8000);
+        bind(serverBootstrap, 8081);
     }
 
     private static void bind(final ServerBootstrap serverBootstrap, final int port) {

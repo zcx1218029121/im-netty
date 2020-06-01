@@ -6,9 +6,11 @@ import protocol.response.MessageResponsePacket;
 
 import java.util.Date;
 
-public class MessageResponseHandler  extends SimpleChannelInboundHandler<MessageResponsePacket> {
+public class MessageResponseHandler extends SimpleChannelInboundHandler<MessageResponsePacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, MessageResponsePacket msg) throws Exception {
-        System.out.println(new Date() + ": 收到服务端的消息: " + msg.getMessage());
+        String fromUserId = msg.getFromUserId();
+        String fromUserName = msg.getFromUserName();
+        System.out.println(fromUserId + ":" + fromUserName + " -> " + msg.getMessage());
     }
 }
